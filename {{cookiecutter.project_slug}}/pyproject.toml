@@ -1,24 +1,22 @@
 [tool.uv]
-project = "{{cookiecutter.project_slug}}"
-python = "3.12"
+python = ">=3.12,<3.13"
 
 [tool.uv.dependencies]
-django = "^4.3"
+django = "^5.1"
 djangorestframework = "^3.15"
-psycopg2-binary = "^2.9"
-pytest = "^8.2"
-pytest-django = "^4.8"
-black = "^24.3"
-isort = "^6.0"
-mypy = "^1.5"
+psycopg2-binary = "^2.9.10"
+pytest = "^8.1"
+pytest-django = "^4.7"
+pytest-asyncio = "^0.21"
+httpx = "^1.2"
+python-dotenv = "^1.1"
+pydantic = "^2.3"
 
 [tool.uv.scripts]
-start = "python src/{{cookiecutter.project_slug}}/manage.py runserver 0.0.0.0:8000"
-test = "pytest --maxfail=1 --disable-warnings -q"
-lint = "black src/ tests/ scripts/ && isort src/ tests/ scripts/"
-type-check = "mypy src/"
+start = "python src/{{cookiecutter.project_slug}}/manage.py runserver"
+test = "pytest tests/"
 
 [build-system]
-requires = ["setuptools>=65", "wheel"]
+requires = ["setuptools>=65", "wheel>=0.40"]
 build-backend = "setuptools.build_meta"
 
