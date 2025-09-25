@@ -7,7 +7,6 @@
   "python_version": "3.11",
   "framework": ["fastapi", "drf"],
   "db_type": ["postgresql", "sqlite"],
-  "create_example_user_feature": "y",
   "_copy_without_render": [
     ".github/*",
     "*.lock"
