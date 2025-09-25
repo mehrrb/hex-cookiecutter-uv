@@ -7,8 +7,4 @@
   "python_version": "3.11",
   "framework": ["fastapi", "drf"],
   "db_type": ["postgresql", "sqlite"],
-  "_copy_without_render": [
-    ".github/*",
-    "*.lock"
-  ]
 }
