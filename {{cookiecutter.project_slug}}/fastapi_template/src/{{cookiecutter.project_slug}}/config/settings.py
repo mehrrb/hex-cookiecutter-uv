@@ -1,11 +1,14 @@
 """
 FastAPI application settings for {{cookiecutter.project_name}}.
 """
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings # type: ignore
+
 from typing import List
-{%- if cookiecutter.db_type == "postgresql" %}
+{%- if cookiecutter.db_type == "postgresql" %} # type: ignore
+
 import os
-{%- endif %}
+{%- endif %} # type: ignore
+
 
 
 class Settings(BaseSettings):

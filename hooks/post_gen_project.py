@@ -20,6 +20,9 @@ def main():
     # Get the project directory (where cookiecutter generated the project)
     project_dir = Path.cwd()
     
+    # Get project slug from directory name
+    project_slug = project_dir.name
+    
     # Get the selected framework from the framework selection file
     framework_file = project_dir / 'framework_selection.txt'
     if framework_file.exists():
@@ -38,7 +41,7 @@ def main():
     if framework == 'fastapi':
         source_dir = template_dir / 'fastapi_template'
         remove_dir = template_dir / 'drf_template'
-    elif framework == 'django':
+    elif framework == 'drf':
         source_dir = template_dir / 'drf_template'
         remove_dir = template_dir / 'fastapi_template'
     else:
@@ -46,7 +49,11 @@ def main():
         sys.exit(1)
     
     # Handle database-specific configurations
-    handle_database_config(project_dir, "{{ cookiecutter.db_type }}")
+    # For DRF, always use PostgreSQL
+    if framework == 'drf':
+        handle_database_config(project_dir, "postgresql")
+    else:
+        handle_database_config(project_dir, "{{ cookiecutter.db_type }}")
     
     # Copy the selected framework's files to the project directory
     if source_dir.exists():
@@ -73,12 +80,12 @@ def main():
             shutil.rmtree(template_path)
     
     # Remove placeholder files
-    for placeholder in ['PLACEHOLDER_FASTAPI', 'PLACEHOLDER_DJANGO']:
+    for placeholder in ['PLACEHOLDER_FASTAPI', 'PLACEHOLDER_DRF']:
         placeholder_path = project_dir / placeholder
         if placeholder_path.exists():
             placeholder_path.unlink()
     
-    print(f"✅ {framework.title()} project setup complete!")
+    print(f"✅ {framework.upper()} project setup complete!")
     print(f"📁 Project structure ready in {project_dir}")
     
     # Print next steps
@@ -86,15 +93,15 @@ def main():
         print("\n🚀 Next steps:")
         print("1. cd into your project directory")
         print("2. Install dependencies: uv sync")
-        print("3. Run the application: python -m src.{{cookiecutter.project_slug}}.main")
+        print(f"3. Run the application: python -m src.{project_slug}.main")
         print("4. Visit http://localhost:8000/docs for API documentation")
-    else:  # django
+    else:  # drf
         print("\n🚀 Next steps:")
         print("1. cd into your project directory")
         print("2. Install dependencies: uv sync")
-        print("3. Run migrations: python src/{{cookiecutter.project_slug}}/manage.py migrate")
-        print("4. Start the development server: python src/{{cookiecutter.project_slug}}/manage.py runserver")
-        print("5. Visit http://localhost:8000 for your Django application")
+        print(f"3. Run migrations: python src/{project_slug}/manage.py migrate")
+        print(f"4. Start the development server: python src/{project_slug}/manage.py runserver")
+        print("5. Visit http://localhost:8000 for your DRF application")
 
 
 def handle_database_config(project_dir: Path, db_type: str):
@@ -106,18 +113,9 @@ def handle_database_config(project_dir: Path, db_type: str):
         print("SQLite selected - no additional database service needed")
     elif db_type == "postgresql":
         print("PostgreSQL selected - database service will be included")
-    elif db_type == "mysql":
-        print("MySQL selected - database service will be included")
     
     # Create .env file with database-specific settings
     env_file = project_dir / ".env"
-    env_content = f"""# Database Configuration
-DATABASE_URL={db_type}://user:password@localhost:5432/{{cookiecutter.project_slug}}
-
-# Application Settings
-DEBUG=True
-SECRET_KEY=your-secret-key-here
-"""
     
     if db_type == "sqlite":
         env_content = f"""# Database Configuration
@@ -127,9 +125,13 @@ DATABASE_URL=sqlite:///./{{cookiecutter.project_slug}}.db
 DEBUG=True
 SECRET_KEY=your-secret-key-here
 """
-    elif db_type == "mysql":
+    elif db_type == "postgresql":
         env_content = f"""# Database Configuration
-DATABASE_URL=mysql://user:password@localhost:3306/{{cookiecutter.project_slug}}
+DB_NAME={{cookiecutter.project_slug}}
+DB_USER=user
+DB_PASSWORD=password
+DB_HOST=localhost
+DB_PORT=5432
 
 # Application Settings
 DEBUG=True

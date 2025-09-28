@@ -4,21 +4,21 @@ version = "0.1.0"
 description = "{{cookiecutter.description}}"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.100",
-    "uvicorn[standard]>=0.20",
-    "pydantic>=2.0",
-    "pydantic-settings>=2.0",
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "pydantic-settings",
     {%- if cookiecutter.db_type == "postgresql" %}
-    "psycopg2-binary>=2.9",
+    "psycopg2-binary",
     {%- endif %}
-    "python-dotenv>=1.0",
+    "python-dotenv",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0",
-    "pytest-asyncio>=0.20",
-    "httpx>=0.24",
+    "pytest",
+    "pytest-asyncio",
+    "httpx",
 ]
 
 [project.scripts]

@@ -1,3 +1,3 @@
 """
-{{cookiecutter.project_name}} - Django DDD Application
+{{cookiecutter.project_name}} - DRF DDD Application
 """

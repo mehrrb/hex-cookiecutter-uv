@@ -4,28 +4,25 @@ version = "0.1.0"
 description = "{{cookiecutter.description}}"
 requires-python = ">=3.12"
 dependencies = [
-    "django>=5.1",
-    "djangorestframework>=3.15",
-    {%- if cookiecutter.db_type == "postgresql" %}
-    "psycopg2-binary>=2.9",
-    {%- endif %}
-    "pytest>=8.1",
-    "pytest-django>=4.7",
-    "httpx>=1.2",
-    "python-dotenv>=1.1",
-    "pydantic>=2.3",
-]
+    "django",
+    "djangorestframework",
+    "psycopg2-binary",
+    "python-dotenv",
+        ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.1",
-    "pytest-django>=4.7",
-    "httpx>=1.2",
+    "pytest",
+    "pytest-django",
+    "httpx",
 ]
 
 [project.scripts]
 start = "{{cookiecutter.project_slug}}.manage:main"
 migrate = "{{cookiecutter.project_slug}}.manage:migrate"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/{{cookiecutter.project_slug}}"]
 
 [build-system]
 requires = ["hatchling"]

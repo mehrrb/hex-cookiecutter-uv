@@ -4,7 +4,8 @@ User repository implementation for {{cookiecutter.project_name}}.
 from typing import List, Optional
 from uuid import UUID
 
-from {{cookiecutter.project_slug}}.domain.entities.user import User
+from {{cookiecutter.project_slug}}.domain.entities.user import User # type: ignore
+
 
 
 class UserRepository:

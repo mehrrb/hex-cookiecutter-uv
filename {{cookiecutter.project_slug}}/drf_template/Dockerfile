@@ -5,19 +5,11 @@ WORKDIR /app
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
-# Install system dependencies
-{%- if cookiecutter.db_type == "postgresql" %}
+        # Install system dependencies for PostgreSQL
 RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-{%- elif cookiecutter.db_type == "mysql" %}
-RUN apt-get update && apt-get install -y \
-    gcc \
-    default-libmysqlclient-dev \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
-{%- endif %}
+            gcc \
+            libpq-dev \
+            && rm -rf /var/lib/apt/lists/*
 
 # Copy project files
 COPY pyproject.toml ./
@@ -27,6 +19,9 @@ RUN uv sync --frozen
 
 # Copy application code
 COPY . .
+
+# Collect static files
+RUN uv run python src/{{cookiecutter.project_slug}}/manage.py collectstatic --noinput
 
 # Expose port
 EXPOSE 8000
