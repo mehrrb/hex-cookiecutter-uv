@@ -1,9 +1,0 @@
-# Django Dependencies
-django
-djangorestframework
-psycopg2-binary
-pytest
-pytest-django
-httpx
-python-dotenv
-pydantic

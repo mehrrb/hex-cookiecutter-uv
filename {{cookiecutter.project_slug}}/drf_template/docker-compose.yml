@@ -1,0 +1,48 @@
+{%- if cookiecutter.db_type in ["postgresql", "mysql"] %}
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DATABASE_URL={{cookiecutter.db_type}}://user:password@db:5432/{{cookiecutter.project_slug}}
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+
+  {%- if cookiecutter.db_type == "postgresql" %}
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: {{cookiecutter.project_slug}}
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  {%- elif cookiecutter.db_type == "mysql" %}
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: {{cookiecutter.project_slug}}
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+  {%- endif %}
+
+volumes:
+  {%- if cookiecutter.db_type == "postgresql" %}
+  postgres_data:
+  {%- elif cookiecutter.db_type == "mysql" %}
+  mysql_data:
+  {%- endif %}
+{%- endif %}
