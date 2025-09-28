@@ -1,0 +1,21 @@
+[tool.uv]
+python = ">=3.12,<3.13"
+
+[tool.uv.dependencies]
+django = "^5.1"
+djangorestframework = "^3.15"
+psycopg2-binary = "^2.9.10"
+pytest = "^8.1"
+pytest-django = "^4.7"
+httpx = "^1.2"
+python-dotenv = "^1.1"
+pydantic = "^2.3"
+
+[tool.uv.scripts]
+start = "python src/{{cookiecutter.project_slug}}/manage.py runserver"
+migrate = "python src/{{cookiecutter.project_slug}}/manage.py migrate"
+test = "pytest tests/"
+
+[build-system]
+requires = ["setuptools>=65", "wheel>=0.40"]
+build-backend = "setuptools.build_meta"
