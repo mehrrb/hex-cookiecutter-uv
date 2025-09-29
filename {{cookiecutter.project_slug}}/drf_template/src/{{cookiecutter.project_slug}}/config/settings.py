@@ -36,8 +36,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "{{cookiecutter.project_slug}}.domain",
-    "{{cookiecutter.project_slug}}.adapters",
+    "{{cookiecutter.project_slug}}",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
