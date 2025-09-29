@@ -1,43 +1,45 @@
 """
 FastAPI application settings for {{cookiecutter.project_name}}.
 """
-from pydantic_settings import BaseSettings # type: ignore
-
 from typing import List
+
+from pydantic_settings import BaseSettings  # type: ignore
+
 {%- if cookiecutter.db_type == "postgresql" %} # type: ignore
 
 import os
+
 {%- endif %} # type: ignore
 
 
 
 class Settings(BaseSettings):
     """Application settings."""
-    
+
     # Application
     DEBUG: bool = False
     PROJECT_NAME: str = "{{cookiecutter.project_name}}"
     VERSION: str = "1.0.0"
-    
+
     # Server
     HOST: str = "0.0.0.0"
     PORT: int = 8000
-    
+
     # CORS
     ALLOWED_HOSTS: List[str] = ["*"]
-    
+
     # Database Configuration
-    {%- if cookiecutter.db_type == "postgresql" %}
+    {%- if cookiecutter.db_type == "postgresql" %} # type: ignore
     DATABASE_URL: str = "postgresql://user:password@localhost:5432/{{cookiecutter.project_slug}}"
-    {%- elif cookiecutter.db_type == "sqlite" %}
+    {%- elif cookiecutter.db_type == "sqlite" %} # type: ignore
     DATABASE_URL: str = "sqlite:///./{{cookiecutter.project_slug}}.db"
-    {%- elif cookiecutter.db_type == "mysql" %}
+    {%- elif cookiecutter.db_type == "mysql" %} # type: ignore
     DATABASE_URL: str = "mysql://user:password@localhost:3306/{{cookiecutter.project_slug}}"
-    {%- endif %}
-    
+    {%- endif %} # type: ignore
+
     # Security
     SECRET_KEY: str = "your-secret-key-here"
-    
+
     class Config:
         env_file = ".env"
         case_sensitive = True

@@ -3,10 +3,9 @@ FastAPI application entry point for {{cookiecutter.project_name}}.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from {{cookiecutter.project_slug}}.config.settings import settings
-from {{cookiecutter.project_slug}}.dependencies.container import Container
-from {{cookiecutter.project_slug}}.adapters.driving.api.routes import api_router
+from {{cookiecutter.project_slug}}.adapters.driving.api.routes import api_router  # type: ignore
+from {{cookiecutter.project_slug}}.config.settings import settings  # type: ignore
+from {{cookiecutter.project_slug}}.dependencies.container import Container  # type: ignore
 
 # Create FastAPI app
 app = FastAPI(

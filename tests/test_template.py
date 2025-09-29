@@ -1,25 +1,20 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
 import subprocess
 import sys
-import tempfile
-import shutil
-from pathlib import Path
+
 
 def run_command(cmd, cwd=None):
     try:
         result = subprocess.run(
-            cmd, 
-            shell=True, 
-            cwd=cwd, 
-            capture_output=True, 
-            text=True, 
-            check=True
+            cmd, shell=True, cwd=cwd, capture_output=True, text=True, check=True
         )
         return result.returncode, result.stdout, result.stderr
     except subprocess.CalledProcessError as e:
         return e.returncode, e.stdout, e.stderr
+
 
 def test_fastapi_sqlite():
     print("Testing FastAPI with SQLite...")
@@ -52,10 +47,12 @@ def test_fastapi_sqlite():
             return False
     docker_compose_path = "test-fastapi-sqlite/docker-compose.yml"
     if os.path.exists(docker_compose_path):
-        with open(docker_compose_path, 'r') as f:
+        with open(docker_compose_path, "r") as f:
             content = f.read().strip()
             if content:
-                print(f"docker-compose.yml should be empty for SQLite, but contains: {content}")
+                print(
+                    f"docker-compose.yml should be empty for SQLite, but contains: {content}"
+                )
                 return False
     print("Testing uv sync...")
     returncode, stdout, stderr = run_command("uv sync", cwd="test-fastapi-sqlite")
@@ -64,6 +61,7 @@ def test_fastapi_sqlite():
         return False
     print("FastAPI SQLite test passed!")
     return True
+
 
 def test_fastapi_postgresql():
     print("Testing FastAPI with PostgreSQL...")
@@ -87,20 +85,21 @@ def test_fastapi_postgresql():
     if not os.path.exists(docker_compose_path):
         print("docker-compose.yml not created for PostgreSQL")
         return False
-    with open(docker_compose_path, 'r') as f:
+    with open(docker_compose_path, "r") as f:
         content = f.read()
         if "postgres:15" not in content:
             print("PostgreSQL service not found in docker-compose.yml")
             return False
     pyproject_path = "test-fastapi-postgresql/pyproject.toml"
     if os.path.exists(pyproject_path):
-        with open(pyproject_path, 'r') as f:
+        with open(pyproject_path, "r") as f:
             content = f.read()
             if "psycopg2-binary" not in content:
                 print("psycopg2-binary not found in pyproject.toml")
                 return False
     print("FastAPI PostgreSQL test passed!")
     return True
+
 
 def test_drf_sqlite():
     print("Testing DRF with SQLite...")
@@ -135,10 +134,12 @@ def test_drf_sqlite():
             return False
     docker_compose_path = "test-drf-sqlite/docker-compose.yml"
     if os.path.exists(docker_compose_path):
-        with open(docker_compose_path, 'r') as f:
+        with open(docker_compose_path, "r") as f:
             content = f.read().strip()
             if content:
-                print(f"docker-compose.yml should be empty for SQLite, but contains: {content}")
+                print(
+                    f"docker-compose.yml should be empty for SQLite, but contains: {content}"
+                )
                 return False
     print("Testing uv sync...")
     returncode, stdout, stderr = run_command("uv sync", cwd="test-drf-sqlite")
@@ -147,6 +148,7 @@ def test_drf_sqlite():
         return False
     print("DRF SQLite test passed!")
     return True
+
 
 def test_drf_postgresql():
     print("Testing DRF with PostgreSQL...")
@@ -170,20 +172,21 @@ def test_drf_postgresql():
     if not os.path.exists(docker_compose_path):
         print("docker-compose.yml not created for PostgreSQL")
         return False
-    with open(docker_compose_path, 'r') as f:
+    with open(docker_compose_path, "r") as f:
         content = f.read()
         if "postgres:15" not in content:
             print("PostgreSQL service not found in docker-compose.yml")
             return False
     pyproject_path = "test-drf-postgresql/pyproject.toml"
     if os.path.exists(pyproject_path):
-        with open(pyproject_path, 'r') as f:
+        with open(pyproject_path, "r") as f:
             content = f.read()
             if "psycopg2-binary" not in content:
                 print("psycopg2-binary not found in pyproject.toml")
                 return False
     print("DRF PostgreSQL test passed!")
     return True
+
 
 def test_docker_build():
     print("Testing Docker build...")
@@ -207,7 +210,7 @@ def test_docker_build():
     if not os.path.exists(dockerfile_path):
         print("Dockerfile not found")
         return False
-    with open(dockerfile_path, 'r') as f:
+    with open(dockerfile_path, "r") as f:
         content = f.read()
         if "FROM python:3.12-slim" not in content:
             print("Dockerfile doesn't use Python 3.12")
@@ -220,6 +223,7 @@ def test_docker_build():
             return False
     print("Docker build test passed!")
     return True
+
 
 def test_drf_functionality():
     print("Testing DRF functionality...")
@@ -245,7 +249,7 @@ def test_drf_functionality():
         return False
     returncode, stdout, stderr = run_command(
         "uv run python src/drf-func/manage.py check --settings=drf-func.config.settings",
-        cwd="drf-func"
+        cwd="drf-func",
     )
     if returncode != 0:
         print(f"DRF check failed: {stderr}")
@@ -253,22 +257,24 @@ def test_drf_functionality():
     print("DRF functionality test passed!")
     return True
 
+
 def cleanup():
     print("Cleaning up test projects...")
     test_projects = [
         "test-fastapi-sqlite",
-        "test-fastapi-postgresql", 
+        "test-fastapi-postgresql",
         "test-drf-sqlite",
         "test-drf-postgresql",
         "docker-build",
         "drf-func",
         "debug-drf",
-        "debug-test"
+        "debug-test",
     ]
     for project in test_projects:
         if os.path.exists(project):
             shutil.rmtree(project)
             print(f"  Removed {project}")
+
 
 def main():
     print("Starting cookiecutter template tests...")
@@ -301,6 +307,7 @@ def main():
     else:
         print("Some tests failed!")
         return 1
+
 
 if __name__ == "__main__":
     try:

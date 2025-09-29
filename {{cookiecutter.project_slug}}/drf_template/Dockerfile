@@ -5,7 +5,7 @@ WORKDIR /app
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
-        # Install system dependencies for PostgreSQL
+# Install system dependencies for PostgreSQL
 RUN apt-get update && apt-get install -y \
             gcc \
             libpq-dev \
