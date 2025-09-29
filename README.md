@@ -46,10 +46,10 @@ pip install cookiecutter
 
 ```bash
 # Clone and generate a new project
-cookiecutter https://github.com/your-username/hex-cookiecutter-uv.git
+cookiecutter https://github.com/mehrrb/hex-cookiecutter-uv.git
 
 # Or use the template directly
-cookiecutter gh:your-username/hex-cookiecutter-uv
+cookiecutter gh:mehrrb/hex-cookiecutter-uv
 ```
 
 ### 2. Choose Your Framework

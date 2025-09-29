@@ -16,8 +16,14 @@ def main():
         framework = framework_file.read_text().strip()
         print(f"Framework selection from file: {framework}")
     else:
-        print("No framework selection file found!")
-        return
+        # Try to get framework from cookiecutter context
+        import os
+
+        framework = os.environ.get("COOKIECUTTER_FRAMEWORK")
+        if not framework:
+            # Try to get from cookiecutter context
+            framework = "{{ cookiecutter.framework }}"
+        print(f"Using framework: {framework}")
 
     print(f"Setting up {framework} project...")
 
@@ -35,10 +41,14 @@ def main():
         print(f"Unknown framework: {framework}")
         sys.exit(1)
 
+    # Get database type from cookiecutter
+    db_type = "{{ cookiecutter.db_type }}"
+
     if framework == "drf":
-        handle_database_config(project_dir, "postgresql")
+        # For DRF, use the actual db_type from cookiecutter
+        handle_database_config(project_dir, db_type)
     else:
-        handle_database_config(project_dir, "{{ cookiecutter.db_type }}")
+        handle_database_config(project_dir, db_type)
 
     if source_dir.exists():
         print(f"Copying {framework} files to project...")
@@ -49,6 +59,13 @@ def main():
                 shutil.copytree(str(item), str(project_dir / item.name))
             else:
                 shutil.copy2(str(item), str(project_dir / item.name))
+
+        # Handle docker-compose.yml based on database type
+        docker_compose_file = project_dir / "docker-compose.yml"
+        if docker_compose_file.exists() and db_type == "sqlite":
+            # Empty the docker-compose.yml for SQLite
+            docker_compose_file.write_text("")
+            print("Cleared docker-compose.yml for SQLite")
 
     if framework_file.exists():
         framework_file.unlink()

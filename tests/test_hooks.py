@@ -3,24 +3,47 @@
 import os
 import shutil
 import subprocess
-import sys
+
+import pytest
 
 
 def run_command(cmd, cwd=None):
     """Run a command and return the result."""
     try:
+        env = os.environ.copy()
         result = subprocess.run(
-            cmd, shell=True, cwd=cwd, capture_output=True, text=True, check=True
+            cmd,
+            shell=True,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            check=True,
+            env=env,
         )
         return result.returncode, result.stdout, result.stderr
     except subprocess.CalledProcessError as e:
         return e.returncode, e.stdout, e.stderr
 
 
+@pytest.fixture(autouse=True)
+def cleanup_after_test():
+    """Clean up test projects after each test."""
+    yield
+    test_projects = [
+        "hook-fastapi",
+        "hook-drf",
+        "hook-sqlite",
+        "hook-postgresql",
+        "hook-steps-fastapi",
+        "hook-steps-drf",
+    ]
+    for project in test_projects:
+        if os.path.exists(project):
+            shutil.rmtree(project)
+
+
 def test_hook_fastapi_cleanup():
     """Test that hook properly cleans up FastAPI project."""
-    print("Testing FastAPI hook cleanup...")
-
     if os.path.exists("test-hook-fastapi"):
         shutil.rmtree("test-hook-fastapi")
 
@@ -33,52 +56,38 @@ def test_hook_fastapi_cleanup():
         db_type="sqlite" """
 
     returncode, stdout, stderr = run_command(cmd)
-    if returncode != 0:
-        print(f"FastAPI generation failed: {stderr}")
-        return False
-
-    if not os.path.exists("hook-fastapi"):
-        print("FastAPI project directory not created")
-        return False
+    assert returncode == 0, f"FastAPI generation failed: {stderr}"
+    assert os.path.exists("hook-fastapi"), "FastAPI project directory not created"
 
     template_dirs = ["fastapi_template", "drf_template"]
     for template_dir in template_dirs:
         template_path = f"hook-fastapi/{template_dir}"
-        if os.path.exists(template_path):
-            print(f"Template directory {template_dir} should be removed")
-            return False
+        assert not os.path.exists(
+            template_path
+        ), f"Template directory {template_dir} should be removed"
 
     placeholder_files = ["PLACEHOLDER_FASTAPI", "PLACEHOLDER_DRF"]
     for placeholder in placeholder_files:
         placeholder_path = f"hook-fastapi/{placeholder}"
-        if os.path.exists(placeholder_path):
-            print(f"Placeholder file {placeholder} should be removed")
-            return False
+        assert not os.path.exists(
+            placeholder_path
+        ), f"Placeholder file {placeholder} should be removed"
 
     framework_file = "hook-fastapi/framework_selection.txt"
-    if os.path.exists(framework_file):
-        print("Framework selection file should be removed")
-        return False
+    assert not os.path.exists(
+        framework_file
+    ), "Framework selection file should be removed"
 
     env_file = "hook-fastapi/.env"
-    if not os.path.exists(env_file):
-        print(".env file should be created")
-        return False
+    assert os.path.exists(env_file), ".env file should be created"
 
     with open(env_file, "r") as f:
         content = f.read()
-        if "sqlite" not in content:
-            print(".env file should contain SQLite configuration")
-            return False
-
-    print("FastAPI hook cleanup test passed!")
-    return True
+        assert "sqlite" in content, ".env file should contain SQLite configuration"
 
 
 def test_hook_drf_cleanup():
     """Test that hook properly cleans up DRF project."""
-    print("Testing DRF hook cleanup...")
-
     if os.path.exists("test-hook-drf"):
         shutil.rmtree("test-hook-drf")
 
@@ -91,52 +100,40 @@ def test_hook_drf_cleanup():
         db_type="postgresql" """
 
     returncode, stdout, stderr = run_command(cmd)
-    if returncode != 0:
-        print(f"DRF generation failed: {stderr}")
-        return False
-
-    if not os.path.exists("hook-drf"):
-        print("DRF project directory not created")
-        return False
+    assert returncode == 0, f"DRF generation failed: {stderr}"
+    assert os.path.exists("hook-drf"), "DRF project directory not created"
 
     template_dirs = ["fastapi_template", "drf_template"]
     for template_dir in template_dirs:
         template_path = f"hook-drf/{template_dir}"
-        if os.path.exists(template_path):
-            print(f"Template directory {template_dir} should be removed")
-            return False
+        assert not os.path.exists(
+            template_path
+        ), f"Template directory {template_dir} should be removed"
 
     placeholder_files = ["PLACEHOLDER_FASTAPI", "PLACEHOLDER_DRF"]
     for placeholder in placeholder_files:
         placeholder_path = f"hook-drf/{placeholder}"
-        if os.path.exists(placeholder_path):
-            print(f"Placeholder file {placeholder} should be removed")
-            return False
+        assert not os.path.exists(
+            placeholder_path
+        ), f"Placeholder file {placeholder} should be removed"
 
     framework_file = "hook-drf/framework_selection.txt"
-    if os.path.exists(framework_file):
-        print("Framework selection file should be removed")
-        return False
+    assert not os.path.exists(
+        framework_file
+    ), "Framework selection file should be removed"
 
     env_file = "hook-drf/.env"
-    if not os.path.exists(env_file):
-        print(".env file should be created")
-        return False
+    assert os.path.exists(env_file), ".env file should be created"
 
     with open(env_file, "r") as f:
         content = f.read()
-        if "postgresql" not in content:
-            print(".env file should contain PostgreSQL configuration")
-            return False
-
-    print("DRF hook cleanup test passed!")
-    return True
+        assert (
+            "DB_NAME=hook-drf" in content
+        ), ".env file should contain PostgreSQL configuration"
 
 
 def test_hook_database_config():
     """Test database configuration in .env files."""
-    print("Testing database configuration...")
-
     if os.path.exists("test-hook-sqlite"):
         shutil.rmtree("test-hook-sqlite")
 
@@ -149,17 +146,15 @@ def test_hook_database_config():
         db_type="sqlite" """
 
     returncode, stdout, stderr = run_command(cmd)
-    if returncode != 0:
-        print(f"SQLite generation failed: {stderr}")
-        return False
+    assert returncode == 0, f"SQLite generation failed: {stderr}"
 
     env_file = "hook-sqlite/.env"
     if os.path.exists(env_file):
         with open(env_file, "r") as f:
             content = f.read()
-            if "sqlite:///./hook-sqlite.db" not in content:
-                print("SQLite .env file should contain correct database URL")
-                return False
+            assert (
+                "DATABASE_URL=sqlite:///./hook-sqlite.db" in content
+            ), "SQLite .env file should contain correct database URL"
 
     if os.path.exists("test-hook-postgresql"):
         shutil.rmtree("test-hook-postgresql")
@@ -173,31 +168,23 @@ def test_hook_database_config():
         db_type="postgresql" """
 
     returncode, stdout, stderr = run_command(cmd)
-    if returncode != 0:
-        print(f"PostgreSQL generation failed: {stderr}")
-        return False
+    assert returncode == 0, f"PostgreSQL generation failed: {stderr}"
 
     env_file = "hook-postgresql/.env"
     if os.path.exists(env_file):
         with open(env_file, "r") as f:
             content = f.read()
-            if (
-                "postgresql://user:password@localhost:5432/hook-postgresql"
-                not in content
-            ):
-                print("PostgreSQL .env file should contain correct database URL")
-                return False
-
-    print("Database configuration test passed!")
-    return True
+            assert (
+                "DB_NAME=hook-postgresql" in content
+            ), "PostgreSQL .env file should contain correct database URL"
 
 
 def test_hook_next_steps():
     """Test that next steps are printed correctly."""
-    print("Testing next steps output...")
-
     if os.path.exists("test-hook-steps-fastapi"):
         shutil.rmtree("test-hook-steps-fastapi")
+
+    os.environ["COOKIECUTTER_FRAMEWORK"] = "fastapi"
 
     cmd = """cookiecutter . --no-input \
         project_name="Hook Steps FastAPI" \
@@ -208,9 +195,7 @@ def test_hook_next_steps():
         db_type="sqlite" """
 
     returncode, stdout, stderr = run_command(cmd)
-    if returncode != 0:
-        print(f"FastAPI generation failed: {stderr}")
-        return False
+    assert returncode == 0, f"FastAPI generation failed: {stderr}"
 
     expected_files = [
         "hook-steps-fastapi/src/hook-steps-fastapi/main.py",
@@ -219,12 +204,12 @@ def test_hook_next_steps():
     ]
 
     for file_path in expected_files:
-        if not os.path.exists(file_path):
-            print(f"Missing FastAPI file: {file_path}")
-            return False
+        assert os.path.exists(file_path), f"Missing FastAPI file: {file_path}"
 
     if os.path.exists("test-hook-steps-drf"):
         shutil.rmtree("test-hook-steps-drf")
+
+    os.environ["COOKIECUTTER_FRAMEWORK"] = "drf"
 
     cmd = """cookiecutter . --no-input \
         project_name="Hook Steps DRF" \
@@ -235,9 +220,7 @@ def test_hook_next_steps():
         db_type="sqlite" """
 
     returncode, stdout, stderr = run_command(cmd)
-    if returncode != 0:
-        print(f"DRF generation failed: {stderr}")
-        return False
+    assert returncode == 0, f"DRF generation failed: {stderr}"
 
     expected_files = [
         "hook-steps-drf/src/hook-steps-drf/manage.py",
@@ -248,73 +231,4 @@ def test_hook_next_steps():
     ]
 
     for file_path in expected_files:
-        if not os.path.exists(file_path):
-            print(f"Missing DRF file: {file_path}")
-            return False
-
-    print("Next steps test passed!")
-    return True
-
-
-def cleanup():
-    """Clean up test projects."""
-    print("Cleaning up test projects...")
-
-    test_projects = [
-        "hook-fastapi",
-        "hook-drf",
-        "hook-sqlite",
-        "hook-postgresql",
-        "hook-steps-fastapi",
-        "hook-steps-drf",
-    ]
-
-    for project in test_projects:
-        if os.path.exists(project):
-            shutil.rmtree(project)
-            print(f"  Removed {project}")
-
-
-def main():
-    """Run all hook tests."""
-    print("Starting cookiecutter hooks tests...")
-    print("=" * 50)
-
-    tests = [
-        test_hook_fastapi_cleanup,
-        test_hook_drf_cleanup,
-        test_hook_database_config,
-        test_hook_next_steps,
-    ]
-
-    passed = 0
-    failed = 0
-
-    for test in tests:
-        try:
-            if test():
-                passed += 1
-            else:
-                failed += 1
-        except Exception as e:
-            print(f"Test {test.__name__} failed with exception: {e}")
-            failed += 1
-        print()
-
-    print("=" * 50)
-    print(f"Test Results: {passed} passed, {failed} failed")
-
-    if failed == 0:
-        print("All hook tests passed!")
-        return 0
-    else:
-        print("Some hook tests failed!")
-        return 1
-
-
-if __name__ == "__main__":
-    try:
-        exit_code = main()
-    finally:
-        cleanup()
-    sys.exit(exit_code)
+        assert os.path.exists(file_path), f"Missing DRF file: {file_path}"

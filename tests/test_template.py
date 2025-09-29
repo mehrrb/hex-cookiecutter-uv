@@ -3,10 +3,12 @@
 import os
 import shutil
 import subprocess
-import sys
+
+import pytest
 
 
 def run_command(cmd, cwd=None):
+    """Run a command and return the result."""
     try:
         result = subprocess.run(
             cmd, shell=True, cwd=cwd, capture_output=True, text=True, check=True
@@ -16,10 +18,32 @@ def run_command(cmd, cwd=None):
         return e.returncode, e.stdout, e.stderr
 
 
+@pytest.fixture(autouse=True)
+def cleanup_after_test():
+    """Clean up test projects after each test."""
+    yield
+    test_projects = [
+        "test-fastapi-sqlite",
+        "test-fastapi-postgresql",
+        "test-drf-sqlite",
+        "test-drf-postgresql",
+        "docker-build",
+        "drffunc",
+        "debug-drf",
+        "debug-test",
+    ]
+    for project in test_projects:
+        if os.path.exists(project):
+            shutil.rmtree(project)
+
+
 def test_fastapi_sqlite():
-    print("Testing FastAPI with SQLite...")
+    """Test FastAPI project generation with SQLite."""
     if os.path.exists("test-fastapi-sqlite"):
         shutil.rmtree("test-fastapi-sqlite")
+
+    os.environ["COOKIECUTTER_FRAMEWORK"] = "fastapi"
+
     cmd = """cookiecutter . --no-input \
         project_name="Test FastAPI SQLite" \
         framework="fastapi" \
@@ -27,13 +51,13 @@ def test_fastapi_sqlite():
         email="test@example.com" \
         description="A test FastAPI project with SQLite" \
         db_type="sqlite" """
+
     returncode, stdout, stderr = run_command(cmd)
-    if returncode != 0:
-        print(f"Failed to generate FastAPI SQLite project: {stderr}")
-        return False
-    if not os.path.exists("test-fastapi-sqlite"):
-        print("FastAPI SQLite project directory not created")
-        return False
+    assert returncode == 0, f"Failed to generate FastAPI SQLite project: {stderr}"
+    assert os.path.exists(
+        "test-fastapi-sqlite"
+    ), "FastAPI SQLite project directory not created"
+
     expected_files = [
         "test-fastapi-sqlite/pyproject.toml",
         "test-fastapi-sqlite/src/test-fastapi-sqlite/main.py",
@@ -41,32 +65,29 @@ def test_fastapi_sqlite():
         "test-fastapi-sqlite/src/test-fastapi-sqlite/domain/services/user_service.py",
         "test-fastapi-sqlite/Dockerfile",
     ]
+
     for file_path in expected_files:
-        if not os.path.exists(file_path):
-            print(f"Missing file: {file_path}")
-            return False
+        assert os.path.exists(file_path), f"Missing file: {file_path}"
+
     docker_compose_path = "test-fastapi-sqlite/docker-compose.yml"
     if os.path.exists(docker_compose_path):
         with open(docker_compose_path, "r") as f:
             content = f.read().strip()
-            if content:
-                print(
-                    f"docker-compose.yml should be empty for SQLite, but contains: {content}"
-                )
-                return False
-    print("Testing uv sync...")
+            assert (
+                not content
+            ), f"docker-compose.yml should be empty for SQLite, but contains: {content}"
+
     returncode, stdout, stderr = run_command("uv sync", cwd="test-fastapi-sqlite")
-    if returncode != 0:
-        print(f"uv sync failed: {stderr}")
-        return False
-    print("FastAPI SQLite test passed!")
-    return True
+    assert returncode == 0, f"uv sync failed: {stderr}"
 
 
 def test_fastapi_postgresql():
-    print("Testing FastAPI with PostgreSQL...")
+    """Test FastAPI project generation with PostgreSQL."""
     if os.path.exists("test-fastapi-postgresql"):
         shutil.rmtree("test-fastapi-postgresql")
+
+    os.environ["COOKIECUTTER_FRAMEWORK"] = "fastapi"
+
     cmd = """cookiecutter . --no-input \
         project_name="Test FastAPI PostgreSQL" \
         framework="fastapi" \
@@ -74,37 +95,40 @@ def test_fastapi_postgresql():
         email="test@example.com" \
         description="A test FastAPI project with PostgreSQL" \
         db_type="postgresql" """
+
     returncode, stdout, stderr = run_command(cmd)
-    if returncode != 0:
-        print(f"Failed to generate FastAPI PostgreSQL project: {stderr}")
-        return False
-    if not os.path.exists("test-fastapi-postgresql"):
-        print("FastAPI PostgreSQL project directory not created")
-        return False
+    assert returncode == 0, f"Failed to generate FastAPI PostgreSQL project: {stderr}"
+    assert os.path.exists(
+        "test-fastapi-postgresql"
+    ), "FastAPI PostgreSQL project directory not created"
+
     docker_compose_path = "test-fastapi-postgresql/docker-compose.yml"
-    if not os.path.exists(docker_compose_path):
-        print("docker-compose.yml not created for PostgreSQL")
-        return False
+    assert os.path.exists(
+        docker_compose_path
+    ), "docker-compose.yml not created for PostgreSQL"
+
     with open(docker_compose_path, "r") as f:
         content = f.read()
-        if "postgres:15" not in content:
-            print("PostgreSQL service not found in docker-compose.yml")
-            return False
+        assert (
+            "postgres:15" in content
+        ), "PostgreSQL service not found in docker-compose.yml"
+
     pyproject_path = "test-fastapi-postgresql/pyproject.toml"
     if os.path.exists(pyproject_path):
         with open(pyproject_path, "r") as f:
             content = f.read()
-            if "psycopg2-binary" not in content:
-                print("psycopg2-binary not found in pyproject.toml")
-                return False
-    print("FastAPI PostgreSQL test passed!")
-    return True
+            assert (
+                "psycopg2-binary" in content
+            ), "psycopg2-binary not found in pyproject.toml"
 
 
 def test_drf_sqlite():
-    print("Testing DRF with SQLite...")
+    """Test DRF project generation with SQLite."""
     if os.path.exists("test-drf-sqlite"):
         shutil.rmtree("test-drf-sqlite")
+
+    os.environ["COOKIECUTTER_FRAMEWORK"] = "drf"
+
     cmd = """cookiecutter . --no-input \
         project_name="Test DRF SQLite" \
         framework="drf" \
@@ -112,13 +136,11 @@ def test_drf_sqlite():
         email="test@example.com" \
         description="A test DRF project with SQLite" \
         db_type="sqlite" """
+
     returncode, stdout, stderr = run_command(cmd)
-    if returncode != 0:
-        print(f"Failed to generate DRF SQLite project: {stderr}")
-        return False
-    if not os.path.exists("test-drf-sqlite"):
-        print("DRF SQLite project directory not created")
-        return False
+    assert returncode == 0, f"Failed to generate DRF SQLite project: {stderr}"
+    assert os.path.exists("test-drf-sqlite"), "DRF SQLite project directory not created"
+
     expected_files = [
         "test-drf-sqlite/pyproject.toml",
         "test-drf-sqlite/src/test-drf-sqlite/manage.py",
@@ -128,32 +150,29 @@ def test_drf_sqlite():
         "test-drf-sqlite/src/test-drf-sqlite/domain/services/user_service.py",
         "test-drf-sqlite/Dockerfile",
     ]
+
     for file_path in expected_files:
-        if not os.path.exists(file_path):
-            print(f"Missing file: {file_path}")
-            return False
+        assert os.path.exists(file_path), f"Missing file: {file_path}"
+
     docker_compose_path = "test-drf-sqlite/docker-compose.yml"
     if os.path.exists(docker_compose_path):
         with open(docker_compose_path, "r") as f:
             content = f.read().strip()
-            if content:
-                print(
-                    f"docker-compose.yml should be empty for SQLite, but contains: {content}"
-                )
-                return False
-    print("Testing uv sync...")
+            assert (
+                not content
+            ), f"docker-compose.yml should be empty for SQLite, but contains: {content}"
+
     returncode, stdout, stderr = run_command("uv sync", cwd="test-drf-sqlite")
-    if returncode != 0:
-        print(f"uv sync failed: {stderr}")
-        return False
-    print("DRF SQLite test passed!")
-    return True
+    assert returncode == 0, f"uv sync failed: {stderr}"
 
 
 def test_drf_postgresql():
-    print("Testing DRF with PostgreSQL...")
+    """Test DRF project generation with PostgreSQL."""
     if os.path.exists("test-drf-postgresql"):
         shutil.rmtree("test-drf-postgresql")
+
+    os.environ["COOKIECUTTER_FRAMEWORK"] = "drf"
+
     cmd = """cookiecutter . --no-input \
         project_name="Test DRF PostgreSQL" \
         framework="drf" \
@@ -161,37 +180,40 @@ def test_drf_postgresql():
         email="test@example.com" \
         description="A test DRF project with PostgreSQL" \
         db_type="postgresql" """
+
     returncode, stdout, stderr = run_command(cmd)
-    if returncode != 0:
-        print(f"Failed to generate DRF PostgreSQL project: {stderr}")
-        return False
-    if not os.path.exists("test-drf-postgresql"):
-        print("DRF PostgreSQL project directory not created")
-        return False
+    assert returncode == 0, f"Failed to generate DRF PostgreSQL project: {stderr}"
+    assert os.path.exists(
+        "test-drf-postgresql"
+    ), "DRF PostgreSQL project directory not created"
+
     docker_compose_path = "test-drf-postgresql/docker-compose.yml"
-    if not os.path.exists(docker_compose_path):
-        print("docker-compose.yml not created for PostgreSQL")
-        return False
+    assert os.path.exists(
+        docker_compose_path
+    ), "docker-compose.yml not created for PostgreSQL"
+
     with open(docker_compose_path, "r") as f:
         content = f.read()
-        if "postgres:15" not in content:
-            print("PostgreSQL service not found in docker-compose.yml")
-            return False
+        assert (
+            "postgres:15" in content
+        ), "PostgreSQL service not found in docker-compose.yml"
+
     pyproject_path = "test-drf-postgresql/pyproject.toml"
     if os.path.exists(pyproject_path):
         with open(pyproject_path, "r") as f:
             content = f.read()
-            if "psycopg2-binary" not in content:
-                print("psycopg2-binary not found in pyproject.toml")
-                return False
-    print("DRF PostgreSQL test passed!")
-    return True
+            assert (
+                "psycopg2-binary" in content
+            ), "psycopg2-binary not found in pyproject.toml"
 
 
 def test_docker_build():
-    print("Testing Docker build...")
+    """Test Docker build configuration."""
     if os.path.exists("test-docker-build"):
         shutil.rmtree("test-docker-build")
+
+    os.environ["COOKIECUTTER_FRAMEWORK"] = "fastapi"
+
     cmd = """cookiecutter . --no-input \
         project_name="Docker Build" \
         framework="fastapi" \
@@ -199,119 +221,45 @@ def test_docker_build():
         email="test@example.com" \
         description="Docker build test" \
         db_type="sqlite" """
+
     returncode, stdout, stderr = run_command(cmd)
-    if returncode != 0:
-        print(f"Failed to generate project: {stderr}")
-        return False
-    if not os.path.exists("docker-build"):
-        print("Docker build project directory not created")
-        return False
+    assert returncode == 0, f"Failed to generate project: {stderr}"
+    assert os.path.exists("docker-build"), "Docker build project directory not created"
+
     dockerfile_path = "docker-build/Dockerfile"
-    if not os.path.exists(dockerfile_path):
-        print("Dockerfile not found")
-        return False
+    assert os.path.exists(dockerfile_path), "Dockerfile not found"
+
     with open(dockerfile_path, "r") as f:
         content = f.read()
-        if "FROM python:3.12-slim" not in content:
-            print("Dockerfile doesn't use Python 3.12")
-            return False
-        if "uv" not in content:
-            print("Dockerfile doesn't use uv")
-            return False
-        if "uv sync" not in content:
-            print("Dockerfile doesn't use uv sync")
-            return False
-    print("Docker build test passed!")
-    return True
+        assert "FROM python:3.12-slim" in content, "Dockerfile doesn't use Python 3.12"
+        assert "uv" in content, "Dockerfile doesn't use uv"
+        assert "uv sync" in content, "Dockerfile doesn't use uv sync"
 
 
 def test_drf_functionality():
-    print("Testing DRF functionality...")
+    """Test DRF functionality and Django check."""
     if os.path.exists("test-drf-func"):
         shutil.rmtree("test-drf-func")
+
+    os.environ["COOKIECUTTER_FRAMEWORK"] = "drf"
+
     cmd = """cookiecutter . --no-input \
-        project_name="DRF Func" \
+        project_name="DRFFunc" \
         framework="drf" \
         author_name="Test User" \
         email="test@example.com" \
         description="DRF func test" \
         db_type="sqlite" """
+
     returncode, stdout, stderr = run_command(cmd)
-    if returncode != 0:
-        print(f"DRF generation failed: {stderr}")
-        return False
-    if not os.path.exists("drf-func"):
-        print("DRF func project directory not created")
-        return False
-    returncode, stdout, stderr = run_command("uv sync", cwd="drf-func")
-    if returncode != 0:
-        print(f"DRF uv sync failed: {stderr}")
-        return False
+    assert returncode == 0, f"DRF generation failed: {stderr}"
+    assert os.path.exists("drffunc"), "DRF func project directory not created"
+
+    returncode, stdout, stderr = run_command("uv sync", cwd="drffunc")
+    assert returncode == 0, f"DRF uv sync failed: {stderr}"
+
     returncode, stdout, stderr = run_command(
-        "uv run python src/drf-func/manage.py check --settings=drf-func.config.settings",
-        cwd="drf-func",
+        "uv run python src/drffunc/manage.py check --settings=drffunc.config.settings",
+        cwd="drffunc",
     )
-    if returncode != 0:
-        print(f"DRF check failed: {stderr}")
-        return False
-    print("DRF functionality test passed!")
-    return True
-
-
-def cleanup():
-    print("Cleaning up test projects...")
-    test_projects = [
-        "test-fastapi-sqlite",
-        "test-fastapi-postgresql",
-        "test-drf-sqlite",
-        "test-drf-postgresql",
-        "docker-build",
-        "drf-func",
-        "debug-drf",
-        "debug-test",
-    ]
-    for project in test_projects:
-        if os.path.exists(project):
-            shutil.rmtree(project)
-            print(f"  Removed {project}")
-
-
-def main():
-    print("Starting cookiecutter template tests...")
-    print("=" * 50)
-    tests = [
-        test_fastapi_sqlite,
-        test_fastapi_postgresql,
-        test_drf_sqlite,
-        test_drf_postgresql,
-        test_docker_build,
-        test_drf_functionality,
-    ]
-    passed = 0
-    failed = 0
-    for test in tests:
-        try:
-            if test():
-                passed += 1
-            else:
-                failed += 1
-        except Exception as e:
-            print(f"Test {test.__name__} failed with exception: {e}")
-            failed += 1
-        print()
-    print("=" * 50)
-    print(f"Test Results: {passed} passed, {failed} failed")
-    if failed == 0:
-        print("All tests passed!")
-        return 0
-    else:
-        print("Some tests failed!")
-        return 1
-
-
-if __name__ == "__main__":
-    try:
-        exit_code = main()
-    finally:
-        cleanup()
-    sys.exit(exit_code)
+    assert returncode == 0, f"DRF check failed: {stderr}"
