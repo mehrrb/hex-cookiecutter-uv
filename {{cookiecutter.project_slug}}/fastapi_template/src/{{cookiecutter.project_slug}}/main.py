@@ -3,9 +3,9 @@ FastAPI application entry point for {{cookiecutter.project_name}}.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from {{cookiecutter.project_slug}}.adapters.driving.api.routes import api_router  # type: ignore
-from {{cookiecutter.project_slug}}.config.settings import settings  # type: ignore
-from {{cookiecutter.project_slug}}.dependencies.container import Container  # type: ignore
+from {{cookiecutter.project_slug}}.adapters.driving.api.routes import api_router  # type: ignore # noqa: E501
+from {{cookiecutter.project_slug}}.config.settings import settings  # type: ignore # noqa: E501
+from {{cookiecutter.project_slug}}.dependencies.container import Container  # type: ignore # noqa: E501
 
 # Create FastAPI app
 app = FastAPI(
@@ -44,7 +44,7 @@ async def health():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "{{cookiecutter.project_slug}}.main:app",
+        "src.{{cookiecutter.project_slug}}.main:app",
         host="0.0.0.0",
         port=8000,
         reload=settings.DEBUG
