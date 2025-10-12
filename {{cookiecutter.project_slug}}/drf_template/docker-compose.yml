@@ -7,7 +7,11 @@ services:
       - "8000:8000"
     environment:
       - DEBUG=True
-      - DATABASE_URL=postgresql://user:password@db:5432/{{cookiecutter.project_slug}}
+      - DB_NAME={{cookiecutter.project_slug}} # yaml-language-server: $schema=none
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_HOST=db
+      - DB_PORT=5432
     depends_on:
       - db
     volumes:
@@ -17,6 +21,7 @@ services:
     image: postgres:15
     environment:
       POSTGRES_DB: {{cookiecutter.project_slug}} # yaml-language-server: $schema=none
+      POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"

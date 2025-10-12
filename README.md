@@ -234,7 +234,7 @@ docker-compose up --build
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions!
 
 ### Development Setup
 

@@ -2,7 +2,7 @@
 Dependency injection container for {{cookiecutter.project_name}}.
 """
 from {{cookiecutter.project_slug}}.adapters.driven.external.email_adapter import EmailAdapter  # type: ignore # noqa: E501
-from {{cookiecutter.project_slug}}.adapters.driven.persistence.user_repository import SQLiteUserRepository,  # type: ignore # noqa: E501
+from {{cookiecutter.project_slug}}.adapters.driven.persistence.user_repository import SQLiteUserRepository  # type: ignore # noqa: E501
 from {{cookiecutter.project_slug}}.config.settings import settings  # type: ignore # noqa: E501
 from {{cookiecutter.project_slug}}.domain.services.user_service import UserService  # type: ignore # noqa: E501
 
